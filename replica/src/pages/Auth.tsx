@@ -87,7 +87,7 @@ export function Login() {
                 id: '1',
                 name: 'Demo User',
                 email: formData.email,
-                role: 'host' // or another valid UserRole
+                role: 'participant'
             });
             navigate('/');
         }

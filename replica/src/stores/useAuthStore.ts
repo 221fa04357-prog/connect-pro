@@ -1,12 +1,5 @@
 import { create } from 'zustand';
-
-import type { UserRole } from '@/types';
-interface User {
-    id: string;
-    name: string;
-    email: string;
-    subscriptionPlan?: 'free' | 'pro' | 'enterprise';
-}
+import { User } from '@/types';
 
 interface AuthState {
     user: User | null;
@@ -15,7 +8,7 @@ interface AuthState {
     login: (user: User) => void;
     logout: () => void;
     setSubscription: (plan: User['subscriptionPlan']) => void;
-}
+} 
 
 // Helpers for localStorage
 const AUTH_KEY = 'connectpro_auth';

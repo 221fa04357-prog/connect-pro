@@ -1,6 +1,15 @@
 // Core TypeScript types for the ConnectPro application
 
 export type UserRole = 'host' | 'co-host' | 'participant';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  subscriptionPlan?: 'free' | 'pro' | 'enterprise';
+  role?: UserRole;
+}
+
 export type ViewMode = 'gallery' | 'speaker';
 export type ChatType = 'public' | 'private';
 
