@@ -27,9 +27,9 @@ export default function MeetingRoom() {
   }, [participants, setActiveSpeaker]);
 
   return (
-    <div className="h-screen bg-[#1C1C1C] flex flex-col overflow-hidden pt-4">
+    <div className="flex flex-col h-screen bg-[#1C1C1C] pt-4">
       {/* Main Content Area */}
-      <div className="flex-1 relative">
+      <div className="flex-1 min-h-0 relative flex flex-col">
         <VideoGrid />
 
         {/* Reactions Overlay */}

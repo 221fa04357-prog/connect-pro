@@ -45,13 +45,13 @@ export default function VideoTile({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             className={cn(
-                'relative aspect-video bg-[#232323] rounded-lg overflow-hidden group',
+                'flex flex-col aspect-video bg-[#232323] rounded-lg overflow-hidden group min-h-[180px]',
                 isPinned && 'ring-2 ring-blue-500',
                 className
             )}
         >
-            {/* Mock Video / Avatar */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            {/* Main Content (Video/Avatar) */}
+            <div className="flex-1 flex items-center justify-center relative w-full">
                 {participant.isVideoOff ? (
                     <div
                         className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-semibold"
@@ -64,50 +64,50 @@ export default function VideoTile({
                         <Video className="w-12 h-12 text-gray-500" />
                     </div>
                 )}
+
+                {/* Pin Button */}
+                {onPin && (
+                    <button
+                        onClick={onPin}
+                        className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                    >
+                        <Pin className={cn('w-4 h-4', isPinned ? 'text-blue-500' : 'text-white')} />
+                    </button>
+                )}
+
+                {/* Hand Raised Indicator */}
+                {participant.isHandRaised && (
+                    <div className="absolute top-2 left-2 p-1.5 bg-yellow-500 rounded-md">
+                        <Hand className="w-4 h-4 text-white" />
+                    </div>
+                )}
             </div>
 
-            {/* Pin Button */}
-            {onPin && (
-                <button
-                    onClick={onPin}
-                    className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
-                >
-                    <Pin className={cn('w-4 h-4', isPinned ? 'text-blue-500' : 'text-white')} />
-                </button>
-            )}
-
-            {/* Hand Raised Indicator */}
-            {participant.isHandRaised && (
-                <div className="absolute top-2 left-2 p-1.5 bg-yellow-500 rounded-md">
-                    <Hand className="w-4 h-4 text-white" />
-                </div>
-            )}
-
-            {/* Bottom Info Bar */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <span className="text-white text-sm font-medium truncate max-w-[150px]">
+            {/* Bottom Info Bar anchored to bottom */}
+            <div className="w-full bg-gradient-to-t from-black/80 to-transparent p-2">
+                <div className="flex items-center justify-between min-w-0 flex-nowrap whitespace-nowrap">
+                    <div className="flex items-center gap-2 min-w-0 flex-nowrap">
+                        <span className="text-white text-sm font-medium truncate max-w-[70px] min-w-0">
                             {participant.name}
                         </span>
                         {participant.role === 'host' && (
-                            <span className="text-xs bg-blue-500 text-white px-1.5 py-0.5 rounded">
+                            <span className="text-xs bg-blue-500 text-white px-1.5 py-0.5 rounded flex-shrink-0">
                                 Host
                             </span>
                         )}
                         {participant.role === 'co-host' && (
-                            <span className="text-xs bg-purple-500 text-white px-1.5 py-0.5 rounded">
+                            <span className="text-xs bg-purple-500 text-white px-1.5 py-0.5 rounded flex-shrink-0">
                                 Co-Host
                             </span>
                         )}
                     </div>
 
                     {/* Interactive Controls */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0 flex-nowrap">
                         <button
                             onClick={handleToggleMute}
                             className={cn(
-                                "p-1.5 rounded-full transition-colors hover:bg-white/20",
+                                "p-1.5 rounded-full transition-colors hover:bg-white/20 flex-shrink-0",
                                 participant.isAudioMuted ? "bg-red-500/20 text-red-500" : "text-white"
                             )}
                         >
@@ -121,7 +121,7 @@ export default function VideoTile({
                         <button
                             onClick={handleToggleVideo}
                             className={cn(
-                                "p-1.5 rounded-full transition-colors hover:bg-white/20",
+                                "p-1.5 rounded-full transition-colors hover:bg-white/20 flex-shrink-0",
                                 participant.isVideoOff ? "bg-red-500/20 text-red-500" : "text-white"
                             )}
                         >
