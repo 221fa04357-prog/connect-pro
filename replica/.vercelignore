@@ -1,0 +1,12 @@
+node_modules
+.eslintrc*
+.git
+.gitignore
+dist
+build
+*.log
+*.tsbuildinfo
+coverage
+.vscode
+.env*
+README.md
