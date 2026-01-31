@@ -2,7 +2,6 @@ import { useParticipantsStore } from '@/stores/useParticipantsStore';
 import { useMeetingStore } from '@/stores/useMeetingStore';
 import VideoTile from './VideoTile';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
 
 export default function VideoGrid() {
   const { participants, activeSpeakerId, pinnedParticipantId, pinParticipant, unpinParticipant } = useParticipantsStore();
@@ -50,23 +49,32 @@ export default function VideoGrid() {
     );
   }
 
-  // Gallery View
-  const gridCols = participants.length <= 2 ? 'grid-cols-1 md:grid-cols-2' :
-    participants.length <= 4 ? 'grid-cols-2' :
-      participants.length <= 9 ? 'grid-cols-2 md:grid-cols-3' :
-        'grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
-
+  // Responsive Zoom-like Gallery View
   return (
-    <div className={cn('grid gap-2 md:gap-4 p-2 md:p-4 h-full overflow-auto', gridCols)}>
-      {participants.map((participant) => (
-        <VideoTile
-          key={participant.id}
-          participant={participant}
-          isActive={participant.id === activeSpeakerId}
-          isPinned={pinnedParticipantId === participant.id}
-          onPin={() => handlePin(participant.id)}
-        />
-      ))}
+    <div className="flex-1 min-h-0 overflow-y-auto pb-[110px]">
+      <div
+        className={cn(
+          'grid gap-2 md:gap-4 p-2 md:p-4 w-full',
+        )}
+        style={{
+          gridTemplateColumns: window.innerWidth >= 768
+            ? 'repeat(auto-fit, minmax(200px, 1fr))'
+            : 'repeat(auto-fit, minmax(140px, 1fr))',
+          gridAutoRows: '1fr',
+          alignItems: 'stretch',
+          justifyItems: 'stretch',
+        }}
+      >
+        {participants.map((participant) => (
+          <VideoTile
+            key={participant.id}
+            participant={participant}
+            isActive={participant.id === activeSpeakerId}
+            isPinned={pinnedParticipantId === participant.id}
+            onPin={() => handlePin(participant.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

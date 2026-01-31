@@ -46,28 +46,9 @@ export default function MeetingRoom() {
   }, [participants, setActiveSpeaker]);
 
   return (
-    <div className="h-screen bg-[#1C1C1C] flex flex-col overflow-hidden pt-4">
-
-      {/* Recording Indicator */}
-      <AnimatePresence>
-        {isRecording && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-4 left-4 z-50 flex items-center gap-2 bg-[#232323]/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-red-500/30"
-          >
-            <div className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-            </div>
-            <span className="text-white font-mono text-sm font-medium tracking-wider">REC {elapsedTime}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+    <div className="flex flex-col h-screen bg-[#1C1C1C] pt-4">
       {/* Main Content Area */}
-      <div className="flex-1 relative flex flex-col min-h-0">
+      <div className="flex-1 min-h-0 relative flex flex-col">
         <VideoGrid />
 
         {/* Reactions Overlay */}
