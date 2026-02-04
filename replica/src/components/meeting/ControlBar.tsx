@@ -371,7 +371,7 @@ export default function ControlBar() {
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                   className="
                     fixed
-                    bottom-[64px]
+                    bottom-[80px]
                     left-0
                     right-0
                     z-40
@@ -379,8 +379,6 @@ export default function ControlBar() {
                     justify-center
                     gap-4
                     py-2
-                    bg-[#111]
-                    border-t border-[#222]
                   "
                 >
                   {reactionEmojis.map((emoji) => (
@@ -483,17 +481,21 @@ export default function ControlBar() {
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
-                {isHost && (
+                {isHost && !isSubscribed && (
+                  <DropdownMenuItem onClick={() => setShowUpgradeModal(true)} className="cursor-pointer text-white-400">
+                    Extend Meeting
+                  </DropdownMenuItem>
+                )}
+                {isHost && isSubscribed && (
                   <>
-                    <DropdownMenuSeparator className="bg-[#333]" />
                     <DropdownMenuItem onClick={() => handleExtendMeeting(15)} className="cursor-pointer">
-                      Extend +15 min
+                      Extend Meeting +15 min
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleExtendMeeting(30)} className="cursor-pointer">
-                      Extend +30 min
+                      Extend Meeting +30 min
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleExtendMeeting(60)} className="cursor-pointer">
-                      Extend +60 min
+                      Extend Meeting +60 min
                     </DropdownMenuItem>
                   </>
                 )}
