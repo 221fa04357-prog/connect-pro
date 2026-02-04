@@ -59,8 +59,8 @@ export const useMeetingStore = create<MeetingState>((set) => ({
   meeting: {
     id: 'meeting-123',
     title: 'Team Standup',
-    hostId: 'participant-1',
-    originalHostId: 'participant-1',
+    hostId: '1',
+    originalHostId: '1',
     startTime: new Date(),
     duration: 60,
     settings: {

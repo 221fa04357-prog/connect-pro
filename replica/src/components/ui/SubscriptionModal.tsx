@@ -82,7 +82,7 @@ export default function SubscriptionModal({ open, onOpenChange }: SubscriptionMo
                                         <p className="text-xs text-blue-200">For small teams</p>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-2xl font-bold">$12</span>
+                                        <span className="text-2xl font-bold">₹999</span>
                                         <span className="text-xs text-gray-400">/mo</span>
                                     </div>
                                 </div>

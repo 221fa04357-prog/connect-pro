@@ -35,11 +35,18 @@ function loadAuth(): { user: User | null; isAuthenticated: boolean } {
 
 export const useAuthStore = create<AuthState>((set) => {
     const initial = loadAuth();
+    // Force subscriptionPlan to 'free' for dev/testing if not set
+    if (initial.user && !initial.user.subscriptionPlan) {
+        initial.user.subscriptionPlan = 'free';
+        saveAuth(initial.user, initial.isAuthenticated);
+    }
     return {
         user: initial.user,
         isAuthenticated: initial.isAuthenticated,
         isSubscribed: !!(initial.user && initial.user.subscriptionPlan && initial.user.subscriptionPlan !== 'free'),
         login: (user) => {
+            // Always set to free on login for dev/testing
+            user.subscriptionPlan = 'free';
             saveAuth(user, true);
             set({ user, isAuthenticated: true });
         },
