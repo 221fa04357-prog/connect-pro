@@ -7,6 +7,7 @@ import { Login, Register, ResetPassword } from './pages/Auth';
 import { JoinMeeting, CreateMeeting } from './pages/MeetingSetup';
 import MeetingRoom from './pages/MeetingRoom';
 import Settings from './pages/Settings';
+import Help from './pages/Help';
 import NotFound from './pages/NotFound';
 import { useAuthStore } from './stores/useAuthStore';
 import { useGuestSessionStore } from './stores/useGuestSessionStore';
@@ -67,6 +68,7 @@ const App = () => (
           } />
 
           <Route path="/settings" element={<Settings />} />
+          <Route path="/help" element={<Help />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

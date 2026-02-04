@@ -73,6 +73,13 @@ export default function Landing() {
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
+                onClick={() => navigate('/help')}
+                className="text-white hover:bg-white/10"
+              >
+                Help
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => navigate('/login')}
                 className="text-white hover:bg-white/10"
               >
@@ -99,9 +106,9 @@ export default function Landing() {
             }}
           >
             <span className="mr-2 text-blue-400">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style={{display:'inline',verticalAlign:'middle'}}><circle cx="10" cy="10" r="9" stroke="#3B82F6" strokeWidth="2"/><text x="10" y="15" textAnchor="middle" fontWeight="bold" fontSize="15" fill="#3B82F6" fontFamily="Segoe UI,Arial,sans-serif">G</text></svg>
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style={{ display: 'inline', verticalAlign: 'middle' }}><circle cx="10" cy="10" r="9" stroke="#3B82F6" strokeWidth="2" /><text x="10" y="15" textAnchor="middle" fontWeight="bold" fontSize="15" fill="#3B82F6" fontFamily="Segoe UI,Arial,sans-serif">G</text></svg>
             </span>
-            Guest session: <span className="ml-1 mr-2 text-blue-300">{Math.floor(remaining / 60000)}:{String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}</span> remaining. 
+            Guest session: <span className="ml-1 mr-2 text-blue-300">{Math.floor(remaining / 60000)}:{String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0')}</span> remaining.
           </div>
         </div>
       )}
@@ -145,7 +152,7 @@ export default function Landing() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="relative flex justify-center md:justify-end w-full"
           >
-            
+
           </motion.div>
         </div>
       </section>
