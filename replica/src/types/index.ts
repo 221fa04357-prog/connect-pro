@@ -59,6 +59,7 @@ export interface Meeting {
   isRecording: boolean;
   isScreenSharing: boolean;
   viewMode: ViewMode;
+  password?: string;
 }
 
 export interface Poll {

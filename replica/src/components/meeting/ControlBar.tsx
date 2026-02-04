@@ -477,7 +477,7 @@ export default function ControlBar() {
                   {showSelfView ? <Check className="w-4 h-4 mr-2" /> : <div className="w-4 h-4 mr-2" />}
                   Show Self View
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={toggleSettings} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>

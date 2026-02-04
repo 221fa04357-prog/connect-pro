@@ -2,6 +2,7 @@ import { Clock, LogOut, Settings, HelpCircle, User2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -52,34 +53,46 @@ export const Header = ({ transparent = false }: { transparent?: boolean }) => {
         </div>
 
         {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="pl-4 md:pl-6 border-l border-[#404040] flex items-center bg-transparent outline-none focus:ring-2 focus:ring-[#0B5CFF]">
-                <Avatar className="w-9 h-9 md:w-11 md:h-11">
-                  <AvatarFallback className="bg-[#0B5CFF] text-white font-semibold text-lg md:text-xl">
-                    {user.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="flex flex-col items-start gap-0.5">
-                <span className="font-semibold text-base flex items-center gap-2"><User2 className="w-4 h-4" /> {user.name}</span>
-                <span className="text-xs text-muted-foreground">{user.email}</span>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <Settings className="w-4 h-4 mr-2" /> Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.open('', '_blank')}>
-                <HelpCircle className="w-4 h-4 mr-2" /> Help
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
-                <LogOut className="w-4 h-4 mr-2" /> Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/help')}
+              className="text-gray-400 hover:text-white hover:bg-white/10"
+              title="Help & Support"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="pl-4 md:pl-6 border-l border-[#404040] flex items-center bg-transparent outline-none focus:ring-2 focus:ring-[#0B5CFF]">
+                  <Avatar className="w-9 h-9 md:w-11 md:h-11">
+                    <AvatarFallback className="bg-[#0B5CFF] text-white font-semibold text-lg md:text-xl">
+                      {user.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="flex flex-col items-start gap-0.5">
+                  <span className="font-semibold text-base flex items-center gap-2"><User2 className="w-4 h-4" /> {user.name}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/settings')}>
+                  <Settings className="w-4 h-4 mr-2" /> Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/help')}>
+                  <HelpCircle className="w-4 h-4 mr-2" /> Help
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                  <LogOut className="w-4 h-4 mr-2" /> Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         )}
       </div>
     </header>

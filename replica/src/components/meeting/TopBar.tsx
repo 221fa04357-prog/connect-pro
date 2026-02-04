@@ -94,10 +94,12 @@ export default function TopBar() {
                             </div>
 
                             {/* Passcode */}
-                            <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-400">Passcode</span>
-                                <span className="text-sm font-medium">123456</span>
-                            </div>
+                            {meeting?.password && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-400">Passcode</span>
+                                    <span className="text-sm font-medium">{meeting.password}</span>
+                                </div>
+                            )}
 
                             {/* Invite Link */}
                             <div className="space-y-2">

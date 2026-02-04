@@ -31,6 +31,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useGuestSessionStore } from '@/stores/useGuestSessionStore';
+import { useMeetingStore } from '@/stores/useMeetingStore';
 
 export function JoinMeeting() {
     const navigate = useNavigate();
@@ -164,6 +165,7 @@ export function CreateMeeting() {
     const navigate = useNavigate();
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
     const user = useAuthStore((state) => state.user);
+    const { setMeeting, meeting: defaultMeeting } = useMeetingStore(); // Access store
     const [isScheduled, setIsScheduled] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -221,11 +223,78 @@ export function CreateMeeting() {
             alert('Please fill in all required fields');
             return;
         }
+
+        // Update the meeting store with the new meeting details
+        const startTime = isScheduled ? new Date(`${formData.date}T${formData.time}`) : new Date();
+        const duration = formData.duration ? parseInt(formData.duration) : 60;
+
+        // Use defaults if defaultMeeting is null, though it shouldn't be based on store init
+        const baseMeeting = defaultMeeting || {
+            id: 'meeting-' + Date.now(),
+            title: 'New Meeting',
+            hostId: user?.id || 'host',
+            originalHostId: user?.id || 'host',
+            startTime: new Date(),
+            duration: 60,
+            settings: {
+                enableWaitingRoom: true,
+                allowParticipantsToUnmute: true,
+                allowParticipantsToShareScreen: true,
+            },
+            isRecording: false,
+            isScreenSharing: false,
+            viewMode: 'gallery'
+        };
+
+        const newMeeting: any = {
+            ...baseMeeting,
+            id: `meeting-${Date.now()}`,
+            title: formData.title, // Sync title
+            startTime: startTime,
+            duration: duration,
+            hostId: user?.id || 'host', // Ensure current user is host
+            password: formData.requirePassword ? formData.password : undefined,
+            settings: {
+                ...baseMeeting.settings,
+                enableWaitingRoom: formData.waitingRoom,
+                // other settings can be mapped here
+            }
+        };
+
+        setMeeting(newMeeting);
         navigate('/meeting');
     };
 
     const handleInstantMeeting = () => {
-        // Store current user info in meeting context
+        // Create an instant meeting
+        // Update the meeting store
+        const baseMeeting = defaultMeeting || {
+            id: 'meeting-' + Date.now(),
+            title: 'New Meeting',
+            hostId: user?.id || 'host',
+            originalHostId: user?.id || 'host',
+            startTime: new Date(),
+            duration: 60,
+            settings: {
+                enableWaitingRoom: true,
+                allowParticipantsToUnmute: true,
+                allowParticipantsToShareScreen: true,
+            },
+            isRecording: false,
+            isScreenSharing: false,
+            viewMode: 'gallery'
+        };
+
+        const newMeeting: any = {
+            ...baseMeeting,
+            id: `meeting-${Date.now()}`,
+            title: "Instant Meeting",
+            startTime: new Date(),
+            duration: 60,
+            hostId: user?.id || 'host',
+        };
+
+        setMeeting(newMeeting);
         navigate('/meeting');
     };
 
@@ -360,7 +429,7 @@ export function CreateMeeting() {
                                                 {pickerView === 'day' && (
                                                     <>
                                                         <div className="grid grid-cols-7 gap-1 text-center text-xs mb-1">
-                                                            {["Su","Mo","Tu","We","Th","Fr","Sa"].map(d => <div key={d} className="font-bold">{d}</div>)}
+                                                            {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map(d => <div key={d} className="font-bold">{d}</div>)}
                                                         </div>
                                                         <div className="grid grid-cols-7 gap-1 text-center">
                                                             {(() => {
@@ -368,7 +437,7 @@ export function CreateMeeting() {
                                                                 const days = getDaysInMonth(pickerYear, pickerMonth);
                                                                 const blanks = Array(firstDay).fill(null);
                                                                 return [
-                                                                    ...blanks.map((_, i) => <div key={"b"+i}></div>),
+                                                                    ...blanks.map((_, i) => <div key={"b" + i}></div>),
                                                                     ...Array(days).fill(0).map((_, i) => {
                                                                         const d = i + 1;
                                                                         const isSelected = selectedDate && selectedDate.getFullYear() === pickerYear && selectedDate.getMonth() === pickerMonth && selectedDate.getDate() === d;
@@ -376,7 +445,7 @@ export function CreateMeeting() {
                                                                             <button
                                                                                 key={d}
                                                                                 className={
-                                                                                    "w-8 h-8 rounded-full "+
+                                                                                    "w-8 h-8 rounded-full " +
                                                                                     (isSelected ? "bg-[#0B5CFF] text-white" : "hover:bg-[#404040]")
                                                                                 }
                                                                                 onClick={() => {
@@ -403,7 +472,7 @@ export function CreateMeeting() {
                                                                 <button
                                                                     key={m}
                                                                     className={
-                                                                        "py-1 px-2 rounded "+
+                                                                        "py-1 px-2 rounded " +
                                                                         (isSelected ? "bg-[#0B5CFF] text-white" : "hover:bg-[#404040]")
                                                                     }
                                                                     onClick={() => {
@@ -426,7 +495,7 @@ export function CreateMeeting() {
                                                                 <button
                                                                     key={year}
                                                                     className={
-                                                                        "block w-full text-left py-1 px-2 rounded "+
+                                                                        "block w-full text-left py-1 px-2 rounded " +
                                                                         (isSelected ? "bg-[#0B5CFF] text-white" : "hover:bg-[#404040]")
                                                                     }
                                                                     onClick={() => {
@@ -488,10 +557,10 @@ export function CreateMeeting() {
                                                             <div key={h} className="flex">
                                                                 <button
                                                                     className={
-                                                                        "w-12 h-8 text-left px-2 rounded-none "+
+                                                                        "w-12 h-8 text-left px-2 rounded-none " +
                                                                         (isSelected ? "bg-[#E5E5E5] text-black font-bold" : "hover:bg-[#404040]")
                                                                     }
-                                                                    style={{border:'none'}}
+                                                                    style={{ border: 'none' }}
                                                                     onClick={() => {
                                                                         setTimePickerHour(hourStr);
                                                                     }}
@@ -511,10 +580,10 @@ export function CreateMeeting() {
                                                             <div key={m} className="flex">
                                                                 <button
                                                                     className={
-                                                                        "w-12 h-8 text-left px-2 rounded-none "+
+                                                                        "w-12 h-8 text-left px-2 rounded-none " +
                                                                         (isSelected ? "bg-[#E5E5E5] text-black font-bold" : "hover:bg-[#404040]")
                                                                     }
-                                                                    style={{border:'none'}}
+                                                                    style={{ border: 'none' }}
                                                                     onClick={() => {
                                                                         const hour = timePickerHour !== null ? timePickerHour : (formData.time.split(':')[0] || '00');
                                                                         setFormData({ ...formData, time: `${hour}:${minStr}` });
