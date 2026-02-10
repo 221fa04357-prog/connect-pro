@@ -65,7 +65,8 @@ export default function MeetingRoom() {
           track.stop();
         });
       }
-    };
+    }
+  }, [useMeetingStore.getState().isAudioMuted, useMeetingStore.getState().isVideoOff, participants, user]);
 
     manageCamera();
   }, [isVideoOff, localStream, setLocalStream, user]);
