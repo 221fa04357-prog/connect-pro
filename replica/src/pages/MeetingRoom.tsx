@@ -11,7 +11,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function MeetingRoom() {
   const {
-    participants,
+    participants, // Active participants list
     setActiveSpeaker,
     waitingRoom,
     admitFromWaitingRoom,
