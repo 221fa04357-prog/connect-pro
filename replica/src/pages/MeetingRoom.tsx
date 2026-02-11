@@ -188,17 +188,16 @@ export default function MeetingRoom() {
     <div className="flex flex-col h-screen bg-[#1C1C1C] pt-4">
       {showHostWaitingOverlay && <HostWaitingRoomOverlay />}
 
-      {/* ---------------- MAIN CONTENT ---------------- */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 min-h-0 relative">
         <TopBar />
         <VideoGrid />
 
-        {/* 🔥 ZOOM-STYLE GLOBAL REACTIONS OVERLAY */}
+        {/* Global Reactions Overlay */}
         <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
           <AnimatePresence>
             {reactions.map((reaction) => {
-              const x = Math.random() * 80 + 10; // generate ONCE
-
+              const x = Math.random() * 80 + 10;
               return (
                 <motion.div
                   key={reaction.id}
@@ -210,12 +209,12 @@ export default function MeetingRoom() {
                     bottom: 120
                   }}
                   animate={{
-                    y: -320,          // FAST UP
+                    y: -320,
                     scale: 1.4,
                     opacity: 0
                   }}
                   transition={{
-                    duration: 2.2,    // QUICK DISAPPEAR
+                    duration: 2.2,
                     ease: 'easeOut'
                   }}
                   onAnimationComplete={() => removeReaction(reaction.id)}
@@ -229,10 +228,7 @@ export default function MeetingRoom() {
         </div>
       </div>
 
-      {/* ---------------- CONTROL BAR ---------------- */}
       <ControlBar />
-
-      {/* ---------------- SIDE PANELS ---------------- */}
       <ChatPanel />
       <ParticipantsPanel />
     </div>
