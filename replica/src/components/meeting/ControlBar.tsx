@@ -4,7 +4,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import {
   Mic, MicOff, Video, VideoOff, MessageSquare,
   Users, MoreVertical, Grid3x3,
-  User, Settings, ChevronUp, Share2, Circle, Smile, X, Check, Hand
+  User, Settings, ChevronUp, Share2, Circle, Smile, X, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,23 +49,13 @@ export default function ControlBar() {
     leaveMeeting,
     setScreenShareStream,
     setRecordingStartTime,
-    setLocalStream,
     extendMeetingTime,
     showSelfView,
     toggleSelfView
   } = useMeetingStore();
   const { user, isSubscribed } = useAuthStore();
 
-  const { participants, updateParticipant, toggleHandRaise } = useParticipantsStore();
-  // Find current user participant
-  const currentUserId = user?.id;
-  const currentParticipant = participants.find(p => p.id === currentUserId) || participants[0];
-  const isHandRaised = !!currentParticipant?.isHandRaised;
-
-  // Toggle hand for self
-  const handleToggleHand = () => {
-    if (currentParticipant) toggleHandRaise(currentParticipant.id);
-  };
+  const { participants, updateParticipant } = useParticipantsStore();
 
   // Local state
   const [showReactions, setShowReactions] = useState(false);
@@ -74,138 +64,26 @@ export default function ControlBar() {
   const [copiedMeetingLink, setCopiedMeetingLink] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  // Whiteboard state
-  const [whiteboardOpen, setWhiteboardOpen] = useState(false);
-  const [whiteboardTool, setWhiteboardTool] = useState<'pen' | 'eraser'>('pen');
-  const [whiteboardColor, setWhiteboardColor] = useState('#111');
-  const [whiteboardSize, setWhiteboardSize] = useState(4);
-  const [whiteboardStrokes, setWhiteboardStrokes] = useState<any[]>([]); // [{points, color, size, tool}]
-  const [whiteboardDrawing, setWhiteboardDrawing] = useState(false);
-  const [eraserPath, setEraserPath] = useState<number[][]>([]); // For eraser tool
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [canvasDims, setCanvasDims] = useState({ w: 0, h: 0 });
 
-  // Whiteboard handlers
-  const openWhiteboard = () => setWhiteboardOpen(true);
-  const closeWhiteboard = () => {
-    setWhiteboardOpen(false);
-    setWhiteboardDrawing(false);
-    setEraserPath([]);
-  };
-  const clearWhiteboard = () => {
-    setWhiteboardStrokes([]);
-    setWhiteboardDrawing(false);
-    setEraserPath([]);
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  };
+  const reactionsRef = useRef<HTMLDivElement | null>(null);
 
-  // Drawing logic (frontend only, no backend)
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    setWhiteboardDrawing(true);
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    if (whiteboardTool === 'pen') {
-      setWhiteboardStrokes((prev) => [...prev, { points: [[x, y]], color: whiteboardColor, size: whiteboardSize, tool: 'pen' }]);
-    } else if (whiteboardTool === 'eraser') {
-      setEraserPath([[x, y]]);
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!whiteboardDrawing) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    if (whiteboardTool === 'pen') {
-      setWhiteboardStrokes((prev) => {
-        if (!prev.length) return prev;
-        const last = { ...prev[prev.length - 1] };
-        last.points = [...last.points, [x, y]];
-        return [...prev.slice(0, -1), last];
-      });
-    } else if (whiteboardTool === 'eraser') {
-      setEraserPath((prev) => [...prev, [x, y]]);
-      // Erase strokes that intersect with eraser path
-      setWhiteboardStrokes((prev) => {
-        const eraserRadius = whiteboardSize * 2;
-        return prev.filter(stroke => {
-          // If any point in stroke is close to eraser path, remove stroke
-          return !stroke.points.some(([sx, sy]) => {
-            return eraserPath.some(([ex, ey]) => (
-              Math.sqrt((sx - ex) ** 2 + (sy - ey) ** 2) < eraserRadius
-            ));
-          });
-        });
-      });
-    }
-  };
-
-  const handlePointerUp = () => {
-    setWhiteboardDrawing(false);
-    setEraserPath([]);
-  };
-
-  // Canvas redraw logic
+  // Close reactions on outside click or Escape
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    // Set actual size in memory (scaled to extra pixels)
-    canvas.width = canvasDims.w * dpr;
-    canvas.height = canvasDims.h * dpr;
-
-    // Normalize coordinate system to logical pixels
-    ctx.scale(dpr, dpr);
-
-    ctx.clearRect(0, 0, canvasDims.w, canvasDims.h);
-    whiteboardStrokes.forEach(stroke => {
-      ctx.strokeStyle = stroke.tool === 'pen' ? stroke.color : '#fff';
-      ctx.lineWidth = stroke.size;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      stroke.points.forEach(([x, y], i) => {
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-    });
-  }, [whiteboardStrokes, canvasDims, whiteboardTool]);
-
-  // Resize canvas on open and window resize
-  useEffect(() => {
-    if (!whiteboardOpen) return;
-    const updateDims = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      setCanvasDims({ w, h });
-    };
-    updateDims();
-    window.addEventListener('resize', updateDims);
-    return () => window.removeEventListener('resize', updateDims);
-  }, [whiteboardOpen]);
-
-  // Resize canvas on open
-  useEffect(() => {
+    function handleDocClick(e: MouseEvent) {
+      if (!showReactions) return;
+      const el = reactionsRef.current;
+      if (el && !el.contains(e.target as Node)) {
+        setShowReactions(false);
+      }
+    }
     function handleEsc(e: KeyboardEvent) {
       if (e.key === 'Escape') setShowReactions(false);
     }
-    function handleDocClick(e: MouseEvent) {
-      // ...existing code or leave empty if not needed...
-    }
-    document.addEventListener('keydown', handleEsc);
     document.addEventListener('mousedown', handleDocClick);
+    document.addEventListener('keydown', handleEsc);
     return () => {
-      document.removeEventListener('keydown', handleEsc);
       document.removeEventListener('mousedown', handleDocClick);
+      document.removeEventListener('keydown', handleEsc);
     };
   }, [showReactions]);
 
@@ -228,21 +106,7 @@ export default function ControlBar() {
     setShowReactions(false);
   };
 
-  const handleAudioToggle = async () => {
-    const currentIsMuted = useMeetingStore.getState().isAudioMuted;
-    const currentStream = useMeetingStore.getState().localStream;
-
-    // If we are unmuting and have no active stream, try to get it here (user gesture)
-    if (currentIsMuted && (!currentStream || !currentStream.active || currentStream.getAudioTracks().length === 0)) {
-      try {
-        console.log("Requesting audio stream on user gesture...");
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: !useMeetingStore.getState().isVideoOff });
-        setLocalStream(stream);
-      } catch (err) {
-        console.error("Failed to get audio stream on toggle:", err);
-      }
-    }
-
+  const handleAudioToggle = () => {
     toggleAudio();
     const userId = user?.id;
     const participant = participants.find(p => p.id === userId)
@@ -254,21 +118,7 @@ export default function ControlBar() {
     }
   };
 
-  const handleVideoToggle = async () => {
-    const currentIsVideoOff = useMeetingStore.getState().isVideoOff;
-    const currentStream = useMeetingStore.getState().localStream;
-
-    // If we are turning video ON and have no active video track, try to get it here (user gesture)
-    if (currentIsVideoOff && (!currentStream || !currentStream.active || currentStream.getVideoTracks().length === 0)) {
-      try {
-        console.log("Requesting video stream on user gesture...");
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: !useMeetingStore.getState().isAudioMuted });
-        setLocalStream(stream);
-      } catch (err) {
-        console.error("Failed to get video stream on toggle:", err);
-      }
-    }
-
+  const handleVideoToggle = () => {
     toggleVideo();
     const userId = user?.id;
     const participant = participants.find(p => p.id === userId)
@@ -370,28 +220,11 @@ export default function ControlBar() {
 
         if (!stream) {
           console.error("No local camera stream available to record.");
-          alert("Please turn on your camera or microphone before recording.");
+          // Ideally show a toast here
           return;
         }
 
-        // Check for supported mime types
-        const types = [
-          'video/webm;codecs=vp9,opus',
-          'video/webm;codecs=vp8,opus',
-          'video/webm',
-          'video/mp4',
-        ];
-
-        const supportedType = types.find(type => MediaRecorder.isTypeSupported(type));
-
-        if (!supportedType) {
-          console.error("No supported mime type found for MediaRecorder");
-          alert("Recording is not supported on this browser.");
-          return;
-        }
-
-        console.log(`Starting recording with type: ${supportedType}`);
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: supportedType });
+        const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
         chunksRef.current = [];
 
@@ -402,13 +235,12 @@ export default function ControlBar() {
         };
 
         mediaRecorder.onstop = () => {
-          const extension = supportedType.includes('video/mp4') ? 'mp4' : 'webm';
-          const blob = new Blob(chunksRef.current, { type: supportedType });
+          const blob = new Blob(chunksRef.current, { type: 'video/webm' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.style.display = 'none';
           a.href = url;
-          a.download = `recording-${new Date().toISOString()}.${extension}`;
+          a.download = `recording-${new Date().toISOString()}.webm`;
           document.body.appendChild(a);
           a.click();
           window.URL.revokeObjectURL(url);
@@ -422,7 +254,6 @@ export default function ControlBar() {
 
       } catch (err) {
         console.error("Error starting recording:", err);
-        alert(`Failed to start recording: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
   };
@@ -444,15 +275,15 @@ export default function ControlBar() {
   return (
     <>
       {/* Bottom Control Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-[#333] z-40 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] px-4 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A] border-t border-[#333] z-40 py-3 px-4 shadow-2xl">
         <div className="flex items-center justify-between max-w-screen-2xl mx-auto">
 
           {/* Main Controls - Center Aligned */}
-          <div className="flex items-center gap-4 md:gap-3 lg:gap-4 flex-1 justify-start md:justify-center overflow-x-auto no-scrollbar pb-1 px-2">
+          <div className="flex items-center gap-2 md:gap-3 lg:gap-4 flex-1 justify-center overflow-x-auto no-scrollbar pb-1">
 
             {/* Audio */}
             <DropdownMenu>
-              <div className="flex-none flex items-center bg-[#1A1A1A] rounded-md overflow-hidden hover:bg-[#2A2A2A] transition-colors border border-transparent hover:border-[#444]">
+              <div className="flex items-center bg-[#1A1A1A] rounded-md overflow-hidden hover:bg-[#2A2A2A] transition-colors border border-transparent hover:border-[#444]">
                 <button
                   onClick={handleAudioToggle}
                   className={cn(
@@ -480,7 +311,7 @@ export default function ControlBar() {
 
             {/* Video */}
             <DropdownMenu>
-              <div className="flex-none flex items-center bg-[#1A1A1A] rounded-md overflow-hidden hover:bg-[#2A2A2A] transition-colors border border-transparent hover:border-[#444]">
+              <div className="flex items-center bg-[#1A1A1A] rounded-md overflow-hidden hover:bg-[#2A2A2A] transition-colors border border-transparent hover:border-[#444]">
                 <button
                   onClick={handleVideoToggle}
                   className={cn(
@@ -540,7 +371,7 @@ export default function ControlBar() {
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                   className="
                     fixed
-                    bottom-[80px]
+                    bottom-[64px]
                     left-0
                     right-0
                     z-40
@@ -548,6 +379,8 @@ export default function ControlBar() {
                     justify-center
                     gap-4
                     py-2
+                    bg-[#111]
+                    border-t border-[#222]
                   "
                 >
                   {reactionEmojis.map((emoji) => (
@@ -565,19 +398,19 @@ export default function ControlBar() {
 
             {/* Share Screen */}
             <DropdownMenu>
-              <div className="relative flex-none">
+              <div className="relative">
                 <DropdownMenuTrigger asChild>
                   <div className="group flex flex-col items-center gap-1 cursor-pointer min-w-[3.5rem]">
                     <div className={cn(
-                      "relative flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
-                      "hover:bg-[#333] text-gray-200"
+                      "relative flex items-center justify-center w-12 h-8 rounded-lg transition-colors group-hover:bg-[#2D2D2D]",
+                      isScreenSharing ? "text-green-500" : "text-green-500"
                     )}>
-                      <Share2 className="w-5 h-5" strokeWidth={2} />
+                      <Share2 className="w-6 h-6 fill-current" />
                       <div className="absolute top-0 right-0 -mr-1">
                         <ChevronUp className="w-3 h-3 text-gray-400 group-hover:text-white" />
                       </div>
                     </div>
-                    <span className="text-[10px] sm:text-[11px] font-medium text-gray-400 group-hover:text-white whitespace-nowrap">
+                    <span className="text-[10px] sm:text-[11px] font-medium text-gray-300 group-hover:text-white whitespace-nowrap">
                       Share Screen
                     </span>
                   </div>
@@ -629,105 +462,43 @@ export default function ControlBar() {
             {/* More */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="outline-none flex-none">
+                <div className="outline-none">
                   <ControlButton
                     icon={MoreVertical}
                     label="More"
                     onClick={() => { }}
-                    isActiveState={isHandRaised}
                   />
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="bg-[#18181b] border-[#333] text-gray-200 w-56 shadow-xl rounded-lg">
-                <DropdownMenuItem onClick={openWhiteboard} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
-                  <Grid3x3 className="w-4 h-4 mr-2" />
-                  Whiteboard
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleToggleHand} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
-                  <Hand className={cn("w-4 h-4 mr-2", isHandRaised ? 'text-yellow-400' : 'text-gray-400')} />
-                  {isHandRaised ? 'Lower Hand' : 'Raise Hand'}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setViewMode(viewMode === 'gallery' ? 'speaker' : 'gallery')} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
+              <DropdownMenuContent align="center" className="bg-[#1A1A1A] border-[#333] text-white w-48">
+                <DropdownMenuItem onClick={() => setViewMode(viewMode === 'gallery' ? 'speaker' : 'gallery')} className="cursor-pointer">
                   {viewMode === 'gallery' ? <User className="w-4 h-4 mr-2" /> : <Grid3x3 className="w-4 h-4 mr-2" />}
                   {viewMode === 'gallery' ? 'Speaker View' : 'Gallery View'}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={toggleSelfView} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
+                <DropdownMenuItem onClick={toggleSelfView} className="cursor-pointer">
                   {showSelfView ? <Check className="w-4 h-4 mr-2" /> : <div className="w-4 h-4 mr-2" />}
                   Show Self View
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
+                <DropdownMenuItem onClick={toggleSettings} className="cursor-pointer">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
-                {isHost && !isSubscribed && (
-                  <DropdownMenuItem onClick={() => setShowUpgradeModal(true)} className="cursor-pointer flex items-center gap-2 text-gray-400 hover:bg-[#232323]">
-                    <span className="w-4 h-4 mr-2" />
-                    Extend Meeting
-                  </DropdownMenuItem>
-                )}
-                {isHost && isSubscribed && (
-                  <DropdownMenuItem onClick={() => handleExtendMeeting(15)} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
-                    <span className="w-4 h-4 mr-2" />
-                    Extend Meeting +15 min
-                  </DropdownMenuItem>
-                )}
-                {isHost && isSubscribed && (
-                  <DropdownMenuItem onClick={() => handleExtendMeeting(30)} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
-                    <span className="w-4 h-4 mr-2" />
-                    Extend Meeting +30 min
-                  </DropdownMenuItem>
-                )}
-                {isHost && isSubscribed && (
-                  <DropdownMenuItem onClick={() => handleExtendMeeting(60)} className="cursor-pointer flex items-center gap-2 text-gray-200 hover:bg-[#232323]">
-                    <span className="w-4 h-4 mr-2" />
-                    Extend Meeting +60 min
-                  </DropdownMenuItem>
+                {isHost && (
+                  <>
+                    <DropdownMenuSeparator className="bg-[#333]" />
+                    <DropdownMenuItem onClick={() => handleExtendMeeting(15)} className="cursor-pointer">
+                      Extend +15 min
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExtendMeeting(30)} className="cursor-pointer">
+                      Extend +30 min
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExtendMeeting(60)} className="cursor-pointer">
+                      Extend +60 min
+                    </DropdownMenuItem>
+                  </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Whiteboard Overlay (must be outside DropdownMenuContent) */}
-            {whiteboardOpen && (
-              <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
-                {/* Controls overlay: ensure z-index and pointer-events */}
-                <div className="absolute top-0 left-0 w-full flex items-center justify-between px-6 py-4 bg-white/90 border-b border-[#e5e7eb] z-[102]" style={{ pointerEvents: 'auto' }}>
-                  <div className="flex gap-2 items-center">
-                    <Grid3x3 className="w-5 h-5 text-gray-900 mr-2" />
-                    <span className="text-lg font-bold text-gray-900">Whiteboard</span>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <button type="button" onClick={() => { clearWhiteboard(); }} className="text-gray-600 hover:text-gray-900 px-3 py-1 rounded transition-colors">Clear</button>
-                    <button type="button" onClick={() => { closeWhiteboard(); }} className="text-gray-600 hover:text-gray-900 px-3 py-1 rounded transition-colors"><X className="w-5 h-5" /></button>
-                  </div>
-                </div>
-                <div className="flex flex-row items-center gap-4 absolute left-1/2 -translate-x-1/2 top-20 z-[102] bg-white/90 rounded-lg px-4 py-2 border border-[#e5e7eb] shadow" style={{ pointerEvents: 'auto' }}>
-                  {/* Pen/Eraser toggle */}
-                  <button onClick={() => setWhiteboardTool('pen')} className={cn("px-2 py-1 rounded", whiteboardTool === 'pen' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300')}>Pen</button>
-                  <button onClick={() => setWhiteboardTool('eraser')} className={cn("px-2 py-1 rounded", whiteboardTool === 'eraser' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border border-gray-300')}>Eraser</button>
-                  {/* Color picker */}
-                  <div className="flex gap-1 items-center">
-                    {['#111', '#f87171', '#60a5fa', '#34d399', '#fbbf24', '#a78bfa'].map(c => (
-                      <button key={c} onClick={() => setWhiteboardColor(c)} className={cn("w-5 h-5 rounded-full border-2", whiteboardColor === c ? 'border-blue-600' : 'border-gray-300')} style={{ background: c }} />
-                    ))}
-                  </div>
-                  {/* Size picker */}
-                  <select value={whiteboardSize} onChange={e => setWhiteboardSize(Number(e.target.value))} className="bg-white text-gray-900 border border-gray-300 rounded px-2 py-1">
-                    {[2, 4, 8, 12].map(s => <option key={s} value={s}>{s}px</option>)}
-                  </select>
-                </div>
-
-                {/* Canvas: ensure controls overlay is above canvas */}
-                <canvas
-                  ref={canvasRef}
-                  className="absolute inset-0 w-full h-full cursor-crosshair z-[101]"
-                  style={{ zIndex: 101, pointerEvents: 'auto', touchAction: 'none' }}
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                  onPointerLeave={handlePointerUp}
-                />
-              </div>
-            )}
 
           </div>
 
@@ -816,21 +587,14 @@ interface ControlButtonProps {
   badge?: number;
 }
 
-// Remove ref usage from ControlButton, ensure no ref is passed to function component
 function ControlButton({ icon: Icon, label, onClick, active, isActiveState, className, badge }: ControlButtonProps) {
   return (
-    <div
-      className={cn("group flex flex-col items-center gap-1 cursor-pointer min-w-[3.5rem] flex-none", className)}
-      onClick={onClick}
-      tabIndex={0}
-      role="button"
-      aria-label={label}
-    >
+    <div className="group flex flex-col items-center gap-1 cursor-pointer min-w-[3.5rem]" onClick={onClick}>
       <div className="relative">
         <div className={cn(
           "relative flex items-center justify-center w-8 h-8 rounded-lg transition-colors",
           isActiveState ? "bg-[#333] text-[#0B5CFF]" : "hover:bg-[#333] text-gray-200",
-          active && "text-red-500",
+          active && "text-red-500", // Alert state like Muted
           className
         )}>
           <Icon className={cn("w-5 h-5", active && "fill-current")} strokeWidth={2} />
